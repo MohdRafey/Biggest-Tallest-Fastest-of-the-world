@@ -111,53 +111,78 @@ async function runEngine() {
         }
     }
 }
-
 // --- UPDATED POLYGON HANDLER ---
 // Format: Type (Country/State), Name, Color, Border, Fact, Details, Persist
+
+
+// UPDATE YOUR HANDLER TO USE THE NEW LOGS:
 async function handlePolygonNavigation(parts, speed) {
     const [type, name, color, border, fact, details, persist] = parts;
+    const stayTime = parseInt(document.getElementById('stayDuration').value || 5) * 1000;
     
-    // We pass 'type' to findFeature to prioritize the right data source
+    addLog(`Searching ${type}: ${name}...`, 'info');
     let result = await findFeature(name, type);
 
     if (result && result.feature) {
         const { feature, source: sourceId } = result;
-        const officialName = feature.properties.name || feature.properties.display_name || name;
-        const bounds = getBounds(feature);
-
-        map.fitBounds(bounds, { padding: 150, speed: speed, essential: true });
+        const officialName = feature.properties.name || feature.properties.NAME_1 || name;
+        const layerId = `highlight-${name.replace(/\s+/g, '-')}-${Date.now()}`;
         
-        if (sourceId !== 'engine-source') {
+        // Define marker outside the block so Cleanup can see it
+        let currentMarker = null;
+
+        if (feature.geometry.type === 'Point') {
+            addLog(`⚠ ${name} is a Point. Flying there...`, 'error');
+            map.flyTo({ center: feature.geometry.coordinates, zoom: 10, speed: speed });
+        } else {
+            const bounds = getBounds(feature);
+            map.fitBounds(bounds, { padding: 150, speed: speed, essential: true });
+
             await new Promise(resolve => {
-                if (map.isSourceLoaded(sourceId)) resolve();
-                else map.once('sourcedata', e => { if (e.sourceId === sourceId && e.isSourceLoaded) resolve(); });
+                let moved = false;
+                const check = () => { if (moved && map.isSourceLoaded(sourceId)) resolve(); };
+                map.once('moveend', () => { moved = true; check(); });
+                setTimeout(resolve, 3000); 
             });
+
+            showFactBox(fact, details, color);
+            addHighlightLayer(layerId, officialName, color, border, sourceId);
+            
+            // Assign to the variable defined in the wider scope
+            const el = document.createElement('div');
+            el.className = 'country-marker';
+            el.innerText = name;
+            currentMarker = new maplibregl.Marker({ element: el }).setLngLat(bounds.getCenter()).addTo(map);
+            activeMarkers.push(currentMarker);
+            
+            addLog(`Rendering highlight for ${officialName}...`, 'info');
         }
 
-        await new Promise(r => map.once('moveend', r));
-        showFactBox(fact, details, color);
+        await new Promise(r => setTimeout(r, stayTime));
 
-        const el = document.createElement('div');
-        el.className = 'country-marker';
-        el.innerText = name;
-        const marker = new maplibregl.Marker({element: el}).setLngLat(bounds.getCenter()).addTo(map);
-        activeMarkers.push(marker);
-
-        const layerId = `highlight-${name.replace(/\s+/g, '-')}-${Date.now()}`;
-        addHighlightLayer(layerId, officialName, color, border, sourceId);
-
-        await new Promise(r => setTimeout(r, 6000));
-
-        if (persist.toLowerCase() !== 'true') {
+        // CLEANUP SECTION
+        if (persist && persist.toLowerCase() !== 'true') {
             if (map.getLayer(layerId)) map.removeLayer(layerId);
             if (map.getLayer(layerId + '-outline')) map.removeLayer(layerId + '-outline');
-            if (sourceId !== 'engine-source') setTimeout(() => { if (map.getSource(sourceId)) map.removeSource(sourceId); }, 1000);
-            marker.remove();
+            
+            // Use the correctly scoped variable
+            if (currentMarker) {
+                currentMarker.remove();
+                activeMarkers = activeMarkers.filter(m => m !== currentMarker);
+                addLog(`Removed text label for ${name}`, 'info');
+            }
+
+            if (sourceId !== 'engine-source' && map.getSource(sourceId)) {
+                map.removeSource(sourceId);
+            }
+            
             hideFactBox();
+            addLog(`Cleared ${name} completely`, 'info');
         }
+    } else {
+        addLog(`✘ Failed to find ${name}`, 'error');
     }
 }
-
 // --- UPDATED CITY HANDLER ---
 // Format: Origin Country, Name, Circle Color, Fact, Details, Persist
 async function handleCityNavigation(parts, speed) {
@@ -187,39 +212,54 @@ async function handleCityNavigation(parts, speed) {
     } catch (e) { console.error("City search failed", e); }
 }
 
-// 5. SEARCH & DATA
 async function findFeature(lookupName, type) {
-    const cleanName = (nameMap[lookupName.toLowerCase()] || lookupName).toLowerCase();
+    const cleanName = lookupName.toLowerCase().trim();
+    const isState = type.toLowerCase() === 'state' || type.toLowerCase() === 'province';
 
-    // If type is 'Country', skip regional packs and look at engine-source
+    addLog(`Searching ${type} for: "${cleanName}"`, "info");
+
+    if (isState) {
+        addLog(`Checking local index of ${regionalData.features.length} features...`, "info");
+        
+        let match = regionalData.features.find(f => {
+            const p = f.properties;
+            // Log every name we encounter until we find a match
+            const featName = (p.name || p.NAME_1 || p.state || p.province || "").toLowerCase();
+            return featName === cleanName;
+        });
+
+        if (match) {
+            addLog(`✔ Match found in local index: ${cleanName}`, "success");
+            const id = `state-src-${Date.now()}`;
+            map.addSource(id, { type: 'geojson', data: match });
+            return { feature: match, source: id };
+        } else {
+            addLog(`✘ No local match for "${cleanName}". Checking API fallback...`, "info");
+        }
+    }
+
     if (type.toLowerCase() === 'country') {
+        addLog(`Checking global country file...`, "info");
         const countryRes = await fetch(GEOJSON_URL);
         const countryData = await countryRes.json();
-        let match = countryData.features.find(f => f.properties.name.toLowerCase() === cleanName);
-        if (match) return { feature: match, source: 'engine-source' };
+        let countryMatch = countryData.features.find(f => f.properties.name.toLowerCase() === cleanName);
+        if (countryMatch) return { feature: countryMatch, source: 'engine-source' };
     }
 
-    // If type is 'State' or 'Province', check regional packs first
-    let match = regionalData.features.find(f => {
-        const p = f.properties;
-        const n = (p.name || p.province || p.state || p.NAME_1 || "").toLowerCase();
-        return n === cleanName;
-    });
-
-    if (match) {
-        const id = `state-src-${Date.now()}`;
-        map.addSource(id, { type: 'geojson', data: match });
-        return { feature: match, source: id };
-    }
-
-    // Fallback to API with the specific type context
-    const apiRes = await fetch(`https://nominatim.openstreetmap.org/search?format=geojson&polygon_geojson=1&q=${encodeURIComponent(lookupName + ' ' + type)}&limit=1`);
+    // FINAL API ATTEMPT
+    addLog(`Requesting Polygon from Nominatim API for: ${lookupName}`, "info");
+    const apiRes = await fetch(`https://nominatim.openstreetmap.org/search?format=geojson&polygon_geojson=1&q=${encodeURIComponent(lookupName)}&limit=1`);
     const apiData = await apiRes.json();
+    
     if (apiData.features?.length > 0) {
+        const feat = apiData.features[0];
+        addLog(`API returned geometry type: ${feat.geometry.type}`, feat.geometry.type === 'Point' ? 'error' : 'success');
+        
         const id = `api-src-${Date.now()}`;
-        map.addSource(id, { type: 'geojson', data: apiData.features[0] });
-        return { feature: apiData.features[0], source: id };
+        map.addSource(id, { type: 'geojson', data: feat });
+        return { feature: feat, source: id };
     }
+
     return null;
 }
 
@@ -246,48 +286,61 @@ function addCountryTag() {
     if (val && !selectedRegions.has(val)) {
         selectedRegions.add(val);
         renderTags();
+        addLog(`Added to queue: ${text}`, 'info');
     }
-    select.value = ""; // Reset dropdown
+    select.value = ""; // Reset dropdown for next selection
 }
 
 function removeCountryTag(val) {
     selectedRegions.delete(val);
     renderTags();
+    addLog(`Removed pack: ${val.toUpperCase()}`, 'info');
 }
 
 function renderTags() {
     const container = document.getElementById('tag-container');
-    container.innerHTML = '';
+    container.innerHTML = ''; // Clear existing
     
     selectedRegions.forEach(val => {
-        // Find the display name from the select options
+        // Try to find the pretty name from the dropdown options
         const option = document.querySelector(`#countrySelect option[value="${val}"]`);
-        const name = option ? option.text : val;
+        const displayName = option ? option.text : val.toUpperCase();
         
         const tag = document.createElement('div');
         tag.className = 'country-tag';
         tag.innerHTML = `
-            ${name} 
-            <span onclick="removeCountryTag('${val}')">&times;</span>
+            ${displayName} 
+            <span class="remove-btn" onclick="removeCountryTag('${val}')">&times;</span>
         `;
         container.appendChild(tag);
     });
 }
 async function loadRegionalPacks() {
-    regionalData.features = []; // Reset
+    if (selectedRegions.size === 0) return;
+    regionalData.features = []; 
     
-    // Only load if in polygon mode
-    if (document.getElementById('navMode').value !== 'polygon') return;
-
     for (const country of selectedRegions) {
-        const url = `https://raw.githubusercontent.com/mledoze/countries/master/data/${country}.geo.json`;
+        const url = `https://raw.githubusercontent.com/mledoze/countries/master/data/${country.toLowerCase()}.geo.json`;
         try {
             const res = await fetch(url);
             const data = await res.json();
-            if (data.features) regionalData.features.push(...data.features);
-            else regionalData.features.push(data);
+            
+            // THE FIX: Some mledoze files have the features inside data.features
+            // Others ARE the features themselves.
+            let featuresToStore = [];
+            
+            if (data.features && Array.isArray(data.features)) {
+                featuresToStore = data.features;
+            } else if (data.type === "Feature") {
+                featuresToStore = [data];
+            } else if (Array.isArray(data)) {
+                featuresToStore = data;
+            }
+
+            regionalData.features.push(...featuresToStore);
+            addLog(`✔ Success: ${country} processed. Added ${featuresToStore.length} sub-regions to local index.`, "success");
         } catch (e) {
-            console.error(`Could not load regional pack for ${country}`, e);
+            addLog(`✘ Error loading ${country}`, "error");
         }
     }
 }
@@ -312,9 +365,35 @@ function createCityMarker(name, dotColor, coords) {
 }
 
 function addHighlightLayer(id, officialName, color, width, sourceId) {
-    const filter = sourceId === 'engine-source' ? ['==', ['get', 'name'], officialName] : ['any', ['==', ['geometry-type'], 'Polygon'], ['==', ['geometry-type'], 'MultiPolygon']];
-    map.addLayer({ id, type: 'fill', source: sourceId, paint: { 'fill-color': color, 'fill-opacity': 0.4 }, filter });
-    map.addLayer({ id: id + '-outline', type: 'line', source: sourceId, paint: { 'line-color': color, 'line-width': parseFloat(width) }, filter });
+    // Logic: If it's the global country file, filter by name.
+    // If it's a specific state source created via findFeature, we show everything in that source.
+    const filter = (sourceId === 'engine-source') 
+        ? ['==', ['get', 'name'], officialName] 
+        : ["all"]; 
+
+    // Add Fill Layer
+    map.addLayer({
+        id: id,
+        type: 'fill',
+        source: sourceId,
+        paint: {
+            'fill-color': color,
+            'fill-opacity': 0.5
+        },
+        filter: filter
+    });
+
+    // Add Outline Layer
+    map.addLayer({
+        id: id + '-outline',
+        type: 'line',
+        source: sourceId,
+        paint: {
+            'line-color': color,
+            'line-width': parseFloat(width) || 2
+        },
+        filter: filter
+    });
 }
 
 function getBounds(feature) {
@@ -327,10 +406,50 @@ function getBounds(feature) {
 function clearPreviousTour() {
     activeMarkers.forEach(m => m.remove());
     activeMarkers = [];
-    map.getStyle().layers.forEach(l => { if (l.id.startsWith('highlight-')) map.removeLayer(l.id); });
+    
+    // Clear existing highlight layers
+    map.getStyle().layers.forEach(l => { 
+        if (l.id.startsWith('highlight-')) map.removeLayer(l.id); 
+    });
+
+    // Clear temporary sources to prevent "Source already exists" errors
+    const style = map.getStyle();
+    Object.keys(style.sources).forEach(s => {
+        if (s.startsWith('state-src') || s.startsWith('api-src')) {
+            map.removeSource(s);
+        }
+    });
+
     hideFactBox();
+    addLog("--- New Tour Started ---", "info");
 }
 
+function copyLogs() {
+    const logContent = document.getElementById('log-content');
+    // Get text and clean up multiple newlines
+    const text = logContent.innerText.replace(/\n\s*\n/g, '\n');
+    
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('.btn-copy-log');
+        const originalText = btn.innerText;
+        btn.innerText = "COPIED!";
+        setTimeout(() => btn.innerText = originalText, 2000);
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+    });
+}
+
+function addLog(message, type = 'info') {
+    const logContent = document.getElementById('log-content');
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${type}`;
+    
+    const timestamp = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    entry.innerHTML = `<span style="color: #666;">[${timestamp}]</span> ${message}`;
+    
+    logContent.appendChild(entry); // Append to end
+    logContent.scrollTop = logContent.scrollHeight; // Auto-scroll to latest
+}
 function updateCSVPlaceholder() {
     const mode = document.getElementById('navMode').value;
     const input = document.getElementById('locationInput');

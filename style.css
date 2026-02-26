@@ -44,8 +44,18 @@ input, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px s
 .btn-refresh { background: #9b59b6; color: white; border: none; padding: 0 15px; border-radius: 4px; cursor: pointer; }
 
 /* CITY MARKERS */
-.city-marker-container { display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+.country-marker {
+    color: white; 
+    text-shadow: 0 0 10px rgba(0,0,0,0.8);
+    font-size: 22px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    pointer-events: none;
+    white-space: nowrap;
+}
 .city-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 8px rgba(0,0,0,0.5); }
+
 .city-label { font-size: 14px; font-weight: 800; margin-bottom: 4px; text-shadow: 0 0 4px rgba(0,0,0,0.5); white-space: nowrap; }
 
 /* THEME ADAPTATION */
@@ -56,8 +66,9 @@ input, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px s
 .tag-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
-    margin-top: 8px;
+    gap: 8px;
+    margin-top: 10px;
+    min-height: 20px;
 }
 
 .country-tag {
@@ -65,24 +76,80 @@ input, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px s
     color: white;
     padding: 4px 10px;
     border-radius: 15px;
-    font-size: 11px;
+    font-size: 12px;
     display: flex;
     align-items: center;
     gap: 8px;
-    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.country-tag span {
+.remove-btn {
     cursor: pointer;
-    font-size: 14px;
+    font-weight: bold;
+    font-size: 16px;
     line-height: 1;
+    color: rgba(255,255,255,0.7);
 }
 
-.country-tag:hover { background: #2980b9; }
-
+.remove-btn:hover {
+    color: white;
+}
 /* Hide logic */
 .display-none {
     display: none !important;
 }
 
 .select-wrapper { margin-bottom: 5px; }
+
+.log-overlay {
+    position: absolute;
+    bottom: 30px;
+    left: 20px;
+    width: 350px; /* Widened slightly for easier reading */
+    max-height: 250px;
+    background: rgba(0, 0, 0, 0.85);
+    color: #00ff00;
+    padding: 0;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    z-index: 2000;
+    border: 1px solid #444;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* REMOVE pointer-events: none; so we can click buttons */
+}
+
+.log-header {
+    background: #222;
+    padding: 8px 12px;
+    font-weight: bold;
+    border-bottom: 1px solid #444;
+    color: #aaa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#log-content {
+    padding: 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column; /* Changed from column-reverse to standard for easier copying */
+    user-select: text; /* Ensures you can highlight the text */
+}
+
+/* Add a style for the copy button */
+.btn-copy-log {
+    background: #444;
+    color: #fff;
+    border: none;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 9px;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.btn-copy-log:hover { background: #666; }

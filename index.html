@@ -7,6 +7,13 @@
     <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
     <link rel="stylesheet" href="style.css">
 </head>
+<div id="map-log" class="log-overlay">
+    <div class="log-header">
+        <span>Engine Logs</span>
+        <button class="btn-copy-log" onclick="copyLogs()">Copy All</button>
+    </div>
+    <div id="log-content"></div>
+</div>
 <body>
 
 <div id="fact-box">
@@ -27,29 +34,27 @@
         </select>
     </div>
 
-    <div id="regional-section" class="field">
-        <label>Regional Data Packs</label>
-        <div class="select-wrapper">
-            <select id="countrySelect" onchange="addCountryTag()">
-                <option value="" disabled selected>Search & Add Country...</option>
-                <option value="united_states_of_america">USA</option>
-                <option value="india">India</option>
-                <option value="china">China</option>
-                <option value="brazil">Brazil</option>
-                <option value="australia">Australia</option>
-                <option value="canada">Canada</option>
-                <option value="germany">Germany</option>
-                <option value="france">France</option>
-            </select>
-        </div>
-        <div id="tag-container" class="tag-container"></div>
+<div id="regional-section" class="field">
+    <label>Regional Data Packs</label>
+    <div class="select-wrapper">
+        <select id="countrySelect" onchange="addCountryTag()">
+            <option value="" disabled selected>Add Country Pack...</option>
+            <option value="usa">USA</option>
+            <option value="ind">India</option>
+            <option value="chn">China</option>
+            <option value="bra">Brazil</option>
+            <option value="aus">Australia</option>
+            <option value="can">Canada</option>
+        </select>
     </div>
+    <div id="tag-container" class="tag-container"></div>
+</div>
 
     <div class="field">
         <label id="csvLabel">Location List</label>
         <p id="csvHint" class="hint-text">Format: Name, Color, Border, Fact, Details, Persist</p>
-        <textarea id="locationInput">UAE, #e67e22, 2, The City of Gold, Dubai is home to the world's tallest building., false
-USA, #3498db, 2, Grand Canyon, Carved by the Colorado River., true</textarea>
+        <textarea id="locationInput">Country, Georgia, #e67e22, 2, Intersection of Europe and Asia, Famous for wine, false
+State, Georgia, #3498db, 2, US State, Known as the Peach State, false</textarea>
     </div>
 
     <div class="row" style="display:flex; gap:10px;">
@@ -81,6 +86,16 @@ USA, #3498db, 2, Grand Canyon, Carved by the Colorado River., true</textarea>
             <button class="btn-refresh" onclick="applyTheme()">🔄</button>
         </div>
     </div>
+
+    <div class="field">
+    <label>Stay Duration (seconds)</label>
+    <input type="range" id="stayDuration" min="1" max="20" value="6" oninput="this.nextElementSibling.value = this.value">
+    <output>6</output>s
+</div>
+
+<div class="field">
+    <label><input type="checkbox" id="showLogs" checked onchange="document.getElementById('map-log').classList.toggle('hidden')"> Show Live Engine Logs</label>
+</div>
 
     <button class="btn-run" onclick="runEngine()">▶ START TOUR</button>
 </div>
