@@ -223,10 +223,10 @@ input[type="range"] {
 .log-overlay {
     position: absolute;
     bottom: 20px;
-    left: 20px;
-    width: 360px;
+    left: 10px;
+    width: 320px;
     /* Max-height collapses to just the header when minimised */
-    max-height: 260px;
+    max-height: 160px;
     background: rgba(10, 10, 10, 0.92);
     color: #00ff00;
     border-radius: 8px;
@@ -415,3 +415,26 @@ input[type="range"] {
     color: #999;
     white-space: nowrap;
 }
+
+/* ─── CSV LABEL ROW (label + shuffle button) ────────────────────────────────── */
+.csv-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.btn-shuffle {
+    background: #2980b9;
+    color: #fff;
+    border: none;
+    padding: 3px 9px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background 0.2s;
+}
+.btn-shuffle:hover { background: #2471a3; }

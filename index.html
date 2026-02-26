@@ -32,8 +32,6 @@
 <div id="panel-wrapper">
   <div id="config-panel">
 
-    <h3 class="panel-title">Map Engine Pro</h3>
-
     <!-- ── TABS ── -->
     <div class="tab-bar">
         <button class="tab-btn tab-active" data-tab="tour"      onclick="switchTab('tour')">Tour</button>
@@ -74,7 +72,10 @@
         </div>
 
         <div class="field">
-            <label id="csvLabel">Location List</label>
+            <div class="csv-label-row">
+                <label id="csvLabel" style="margin:0">Location List</label>
+                <button class="btn-shuffle" onclick="shuffleCSV()" title="Load a random sample dataset">&#9684; Shuffle</button>
+            </div>
             <p id="csvHint" class="hint-text">Format: Type, Name, Color, Fact, Details, BorderWidth, Label, ShowFact, Persist, PersistLabel, RecencyMode</p>
             <textarea id="locationInput">Country, India, #e67e22, The Subcontinent, World's most populous country, 2, false, true, false, false, false
 State, Maharashtra, #e74c3c, Maharashtra, Home to Mumbai — India's financial hub, 1.5, true, true, true, false, true
@@ -94,8 +95,9 @@ State, Kerala, #e74c3c, Kerala, God's Own Country, 1.5, true, true, true, false,
             </div>
         </div>
 
+        <div class="row" style="display:flex; gap:10px;">
         <div class="field">
-            <label>Travel Speed (0.1 – 2.0)</label>
+            <label>Speed (0.1 – 2.0)</label>
             <input type="number" id="speed" value="0.4" step="0.1" min="0.1" max="2">
         </div>
 
@@ -125,6 +127,7 @@ State, Kerala, #e74c3c, Kerala, God's Own Country, 1.5, true, true, true, false,
                 </select>
                 <button class="btn-refresh" onclick="applyTheme()">🔄</button>
             </div>
+        </div>
         </div>
 
         <div class="field">
