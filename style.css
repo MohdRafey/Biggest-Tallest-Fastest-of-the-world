@@ -223,10 +223,10 @@ input[type="range"] {
 .log-overlay {
     position: absolute;
     bottom: 20px;
-    left: 10px;
+    left: 20px;
     width: 360px;
     /* Max-height collapses to just the header when minimised */
-    max-height: 110px;
+    max-height: 260px;
     background: rgba(10, 10, 10, 0.92);
     color: #00ff00;
     border-radius: 8px;
@@ -299,3 +299,119 @@ input[type="range"] {
 .log-entry.success { color: #2ecc71; }
 .log-entry.error   { color: #e74c3c; }
 .log-entry.info    { color: #00cc88; }
+
+/* ─── PANEL TITLE ───────────────────────────────────────────────────────────── */
+.panel-title {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 800;
+    color: #222;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* ─── TABS ──────────────────────────────────────────────────────────────────── */
+.tab-bar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    background: #f0f0f0;
+    padding: 3px;
+    border-radius: 8px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 7px 0;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.tab-btn:hover { color: #333; }
+
+.tab-btn.tab-active {
+    background: #fff;
+    color: #222;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+}
+
+.tab-content { display: block; }
+.tab-hidden  { display: none;  }
+
+/* ─── CUSTOMIZE TAB ─────────────────────────────────────────────────────────── */
+.cx-section-title {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #999;
+    margin: 14px 0 6px 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #eee;
+}
+
+.cx-section {
+    padding: 2px 0 6px 0;
+}
+
+.cx-row {
+    display: flex;
+    gap: 10px;
+}
+.cx-row .field { flex: 1; }
+
+.cx-hint {
+    font-size: 9px;
+    color: #bbb;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+/* Color picker: swatch + hex text side by side */
+.color-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.color-swatch {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 2px !important;
+    border-radius: 4px !important;
+    border: 1px solid #ccc !important;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.color-hex {
+    flex: 1;
+    font-family: monospace;
+    font-size: 11px !important;
+    padding: 6px 8px !important;
+    letter-spacing: 0.5px;
+}
+
+/* Number input + px unit inline */
+.unit-input {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.unit-input input {
+    flex: 1;
+}
+.unit-input span {
+    font-size: 11px;
+    color: #999;
+    white-space: nowrap;
+}

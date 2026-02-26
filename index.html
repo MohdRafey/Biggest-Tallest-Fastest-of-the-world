@@ -9,7 +9,7 @@
 </head>
 <body>
 
-<!-- Log overlay — minimise/clear buttons added, no longer blocks the START TOUR button -->
+<!-- Log overlay -->
 <div id="map-log" class="log-overlay">
     <div class="log-header">
         <span>Engine Logs</span>
@@ -22,108 +22,226 @@
     <div id="log-content"></div>
 </div>
 
+<!-- Fact card -->
 <div id="fact-box">
     <p id="fact-body">Main Fact</p>
     <div id="fact-details">Details go here...</div>
 </div>
 
+<!-- Main panel -->
 <div id="panel-wrapper">
   <div id="config-panel">
-    <h3 style="margin:0 0 15px 0">Map Engine Configuration</h3>
 
-    <div class="field">
-        <label>Navigation Mode</label>
-        <select id="navMode" onchange="handleModeChange()">
-            <option value="polygon">Continent / Country / State</option>
-            <option value="city">City / Landmark (Point)</option>
-        </select>
+    <h3 class="panel-title">Map Engine Pro</h3>
+
+    <!-- ── TABS ── -->
+    <div class="tab-bar">
+        <button class="tab-btn tab-active" data-tab="tour"      onclick="switchTab('tour')">Tour</button>
+        <button class="tab-btn"            data-tab="customize" onclick="switchTab('customize')">Customize</button>
     </div>
 
-    <div id="regional-section" class="field">
-        <label>State / Province Data Packs</label>
-        <p class="hint-text" style="margin-bottom:6px">Load before using "State" type in CSV. Data fetched once &amp; cached.</p>
-        <div class="select-wrapper">
-            <select id="countrySelect" onchange="addCountryTag()">
-                <option value="" disabled selected>Add Country Pack...</option>
-                <option value="usa">USA</option>
-                <option value="ind">India</option>
-                <option value="jpn">Japan</option>
-                <option value="aus">Australia</option>
-                <option value="can">Canada</option>
-                <option value="deu">Germany</option>
-                <option value="gbr">United Kingdom</option>
-                <option value="fra">France</option>
-                <option value="esp">Spain</option>
-                <option value="rus">Russia</option>
-                <option value="chn">China</option>
+    <!-- ════════════════════════════════════════════════════ TOUR TAB -->
+    <div id="tab-tour" class="tab-content">
+
+        <div class="field">
+            <label>Navigation Mode</label>
+            <select id="navMode" onchange="handleModeChange()">
+                <option value="polygon">Country / State / Province</option>
+                <option value="city">City / Landmark</option>
             </select>
         </div>
-        <div id="tag-container" class="tag-container"></div>
-    </div>
 
-    <div class="field">
-        <label id="csvLabel">Location List</label>
-        <p id="csvHint" class="hint-text">Format: Name, Color, Border, Fact, Details, Persist</p>
-        <textarea id="locationInput">Country, Georgia, #e67e22, 2, Intersection of Europe and Asia, Famous for wine, false
-State, Georgia, #3498db, 2, US State, Known as the Peach State, false</textarea>
-    </div>
-
-    <div class="row" style="display:flex; gap:10px;">
-        <div class="field" style="flex:1">
-            <label>Start Zoom</label>
-            <input type="number" id="startZoom" value="2" step="0.5">
+        <div id="regional-section" class="field">
+            <label>State / Province Data Packs</label>
+            <p class="hint-text" style="margin-bottom:6px">Load before using State rows. Fetched once &amp; cached.</p>
+            <div class="select-wrapper">
+                <select id="countrySelect" onchange="addCountryTag()">
+                    <option value="" disabled selected>Add Country Pack...</option>
+                    <option value="usa">USA</option>
+                    <option value="ind">India</option>
+                    <option value="jpn">Japan</option>
+                    <option value="aus">Australia</option>
+                    <option value="can">Canada</option>
+                    <option value="deu">Germany</option>
+                    <option value="gbr">United Kingdom</option>
+                    <option value="fra">France</option>
+                    <option value="esp">Spain</option>
+                    <option value="rus">Russia</option>
+                    <option value="chn">China</option>
+                </select>
+            </div>
+            <div id="tag-container" class="tag-container"></div>
         </div>
-        <div class="field" style="flex:1">
-            <label>Max Zoom</label>
-            <input type="number" id="maxZoom" value="4" step="0.5">
-        </div>
-    </div>
 
-    <div class="field">
-        <label>Travel Speed (0.1 - 2.0)</label>
-        <input type="number" id="speed" value="0.4" step="0.1">
-    </div>
-
-    <div class="field">
-        <label>Map Theme</label>
-        <div style="display:flex; gap:5px;">
-            <select id="mapTheme" style="flex:2">
-                <option value="bright">Bright (Default)</option>
-                <option value="dark">Dark Neon</option>
-                <option value="sepia">Vintage Sepia</option>
-                <option value="colorful">Colorful/Playful</option>
-                <option value="oceanic">Deep Oceanic</option>
-            </select>
-            <button class="btn-refresh" onclick="applyTheme()">🔄</button>
+        <div class="field">
+            <label id="csvLabel">Location List</label>
+            <p id="csvHint" class="hint-text">Format: Type, Name, Color, Fact, Details, BorderWidth, Label, ShowFact, Persist, PersistLabel, RecencyMode</p>
+            <textarea id="locationInput">Country, India, #e67e22, The Subcontinent, World's most populous country, 2, false, true, false, false, false
+State, Maharashtra, #e74c3c, Maharashtra, Home to Mumbai — India's financial hub, 1.5, true, true, true, false, true
+State, Karnataka, #e74c3c, Karnataka, Silicon Valley of India, 1.5, true, true, true, false, true
+State, Tamil Nadu, #e74c3c, Tamil Nadu, Land of Temples and Culture, 1.5, true, true, true, false, true
+State, Kerala, #e74c3c, Kerala, God's Own Country, 1.5, true, true, true, false, true</textarea>
         </div>
-    </div>
 
-    <!-- Slider row: label on left, value+unit on right, slider full width below -->
-    <div class="field">
-        <div class="slider-label-row">
-            <label style="margin:0">Stay Duration</label>
-            <span class="slider-value-display"><output id="stayOutput">6</output>s</span>
+        <div class="row" style="display:flex; gap:10px;">
+            <div class="field" style="flex:1">
+                <label>Start Zoom</label>
+                <input type="number" id="startZoom" value="2" step="0.5">
+            </div>
+            <div class="field" style="flex:1">
+                <label>Max Zoom</label>
+                <input type="number" id="maxZoom" value="6" step="0.5">
+            </div>
         </div>
-        <input type="range" id="stayDuration" min="1" max="20" value="6"
-               oninput="document.getElementById('stayOutput').value = this.value">
-    </div>
 
-    <!-- Show logs row: checkbox + label neatly aligned -->
-    <div class="field">
-        <div class="toggle-row">
-            <input type="checkbox" id="showLogs" checked
-                   onchange="document.getElementById('map-log').classList.toggle('log-hidden')">
-            <label for="showLogs" style="margin:0; cursor:pointer;">Show Live Engine Logs</label>
+        <div class="field">
+            <label>Travel Speed (0.1 – 2.0)</label>
+            <input type="number" id="speed" value="0.4" step="0.1" min="0.1" max="2">
         </div>
-    </div>
+
+        <div class="field">
+            <label>Map Theme</label>
+            <div style="display:flex; gap:5px;">
+                <select id="mapTheme" style="flex:2">
+                    <optgroup label="Light">
+                        <option value="bright">Bright</option>
+                        <option value="paper">Paper</option>
+                        <option value="arctic">Arctic</option>
+                        <option value="sand">Sand</option>
+                        <option value="sepia">Sepia</option>
+                        <option value="colorful">Colorful</option>
+                    </optgroup>
+                    <optgroup label="Dark">
+                        <option value="dark">Dark</option>
+                        <option value="midnight">Midnight</option>
+                        <option value="slate">Slate</option>
+                        <option value="monochrome">Monochrome</option>
+                        <option value="neon">Neon</option>
+                        <option value="ember">Ember</option>
+                        <option value="forest">Forest</option>
+                        <option value="oceanic">Oceanic</option>
+                        <option value="dusk">Dusk</option>
+                    </optgroup>
+                </select>
+                <button class="btn-refresh" onclick="applyTheme()">🔄</button>
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="slider-label-row">
+                <label style="margin:0">Stay Duration</label>
+                <span class="slider-value-display"><output id="stayOutput">6</output>s</span>
+            </div>
+            <input type="range" id="stayDuration" min="1" max="20" value="6"
+                   oninput="document.getElementById('stayOutput').value = this.value">
+        </div>
+
+        <div class="field">
+            <div class="toggle-row">
+                <input type="checkbox" id="showLogs" checked
+                       onchange="document.getElementById('map-log').classList.toggle('log-hidden')">
+                <label for="showLogs" style="margin:0; cursor:pointer;">Show Live Engine Logs</label>
+            </div>
+        </div>
+
+    </div><!-- /tab-tour -->
+
+    <!-- ════════════════════════════════════════════════ CUSTOMIZE TAB -->
+    <div id="tab-customize" class="tab-content tab-hidden">
+
+        <!-- Masters -->
+        <div class="cx-section-title">Masters</div>
+        <div class="cx-section">
+            <div class="toggle-row">
+                <input type="checkbox" id="cx-master-fact" checked>
+                <label for="cx-master-fact">Fact Card &nbsp;<span class="cx-hint">global on/off</span></label>
+            </div>
+            <div class="toggle-row" style="margin-top:8px">
+                <input type="checkbox" id="cx-master-label" checked>
+                <label for="cx-master-label">Labels &nbsp;<span class="cx-hint">global on/off</span></label>
+            </div>
+            <div class="toggle-row" style="margin-top:8px">
+                <input type="checkbox" id="cx-master-details" checked>
+                <label for="cx-master-details">Fact Details &nbsp;<span class="cx-hint">global on/off</span></label>
+            </div>
+            <div class="field" style="margin-top:10px; margin-bottom:0">
+                <label>Visited Region Color <span class="cx-hint">(RecencyMode)</span></label>
+                <div class="color-row">
+                    <input type="color" id="cx-recency-color" value="#7f8c8d" class="color-swatch">
+                    <input type="text"  id="cx-recency-color-hex" value="#7f8c8d" class="color-hex"
+                           oninput="syncColor('cx-recency-color','cx-recency-color-hex',this.value)">
+                </div>
+            </div>
+        </div>
+
+        <!-- Fact Card -->
+        <div class="cx-section-title">Fact Card</div>
+        <div class="cx-section">
+            <div class="cx-row">
+                <div class="field">
+                    <label>Heading Size</label>
+                    <div class="unit-input"><input type="number" id="cx-heading-size" value="20" min="10" max="48"><span>px</span></div>
+                </div>
+                <div class="field">
+                    <label>Heading Color</label>
+                    <div class="color-row">
+                        <input type="color" id="cx-heading-color" value="#1a1a1a" class="color-swatch"
+                               oninput="document.getElementById('cx-heading-color-hex').value=this.value">
+                        <input type="text"  id="cx-heading-color-hex" value="#1a1a1a" class="color-hex"
+                               oninput="syncColor('cx-heading-color','cx-heading-color-hex',this.value)">
+                    </div>
+                </div>
+            </div>
+            <div class="cx-row">
+                <div class="field">
+                    <label>Details Size</label>
+                    <div class="unit-input"><input type="number" id="cx-details-size" value="13" min="8" max="32"><span>px</span></div>
+                </div>
+                <div class="field">
+                    <label>Details Color</label>
+                    <div class="color-row">
+                        <input type="color" id="cx-details-color" value="#555555" class="color-swatch"
+                               oninput="document.getElementById('cx-details-color-hex').value=this.value">
+                        <input type="text"  id="cx-details-color-hex" value="#555555" class="color-hex"
+                               oninput="syncColor('cx-details-color','cx-details-color-hex',this.value)">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Label -->
+        <div class="cx-section-title">Label</div>
+        <div class="cx-section">
+            <div class="cx-row">
+                <div class="field">
+                    <label>Label Size</label>
+                    <div class="unit-input"><input type="number" id="cx-label-size" value="22" min="10" max="60"><span>px</span></div>
+                </div>
+                <div class="field">
+                    <label>Label Color</label>
+                    <div class="color-row">
+                        <input type="color" id="cx-label-color" value="#ffffff" class="color-swatch"
+                               oninput="document.getElementById('cx-label-color-hex').value=this.value">
+                        <input type="text"  id="cx-label-color-hex" value="#ffffff" class="color-hex"
+                               oninput="syncColor('cx-label-color','cx-label-color-hex',this.value)">
+                    </div>
+                </div>
+            </div>
+            <div class="toggle-row" style="margin-top:4px">
+                <input type="checkbox" id="cx-label-shadow" checked>
+                <label for="cx-label-shadow">Label Shadow</label>
+            </div>
+        </div>
+
+    </div><!-- /tab-customize -->
 
     <button class="btn-run" onclick="runEngine()">▶ START TOUR</button>
+
   </div><!-- /config-panel -->
   <button class="panel-arrow" id="panelArrow" onclick="toggleConfig()" title="Hide / Show panel">&#8249;</button>
 </div><!-- /panel-wrapper -->
 
 <div id="map"></div>
-
 <script src="script.js"></script>
 </body>
 </html>
