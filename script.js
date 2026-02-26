@@ -1,4 +1,5 @@
 const GEOJSON_URL = 'https://raw.githubusercontent.com/datasets/geo-boundaries-world-110m/master/countries.geojson';
+
 const nameMap = { 
     "usa": "United States",
     "uae": "United Arab Emirates",
@@ -6,6 +7,30 @@ const nameMap = {
     "russia": "Russian Federation",
     "korea": "South Korea" 
 };
+
+// Single source for ALL country sub-regions (states/provinces).
+// Natural Earth Admin-1 contains every country worldwide with consistent 'name' and 'adm0_a3' properties.
+// We fetch this once, cache it, and filter per country pack — no separate URL per country needed.
+const NATURAL_EARTH_ADMIN1_URL = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_1_states_provinces.geojson';
+
+// Maps pack key -> ISO 3166-1 alpha-3 code used in the Natural Earth 'adm0_a3' property.
+// Add any country here and it will work automatically — no extra data source needed.
+const PACK_ISO3 = {
+    usa: 'USA',
+    ind: 'IND',
+    jpn: 'JPN',
+    aus: 'AUS',
+    can: 'CAN',
+    deu: 'DEU',
+    gbr: 'GBR',
+    fra: 'FRA',
+    esp: 'ESP',
+    rus: 'RUS',
+    chn: 'CHN',
+};
+
+// Module-level cache so we only download the ~14MB NE file once per session.
+let _naturalEarthAdmin1Cache = null;
 
 const themes = {
     bright: { water: '#748B97', land: '#f8f4f0', background: '#ffffff', border: '#cccccc' },
@@ -20,21 +45,26 @@ let activeMarkers = [];
 let regionalData = { type: 'FeatureCollection', features: [] };
 let selectedRegions = new Set();
 
-// 1. INITIALIZATION
-map = new maplibregl.Map({
-    container: 'map',
-    style: 'https://tiles.openfreemap.org/styles/bright',
-    center: [0, 20],
-    zoom: 2,
-    maxZoom: 10
-});
+// FIX 3: Wrap map initialization in DOMContentLoaded so #map div exists in the DOM
+document.addEventListener('DOMContentLoaded', () => {
+    map = new maplibregl.Map({
+        container: 'map',
+        style: 'https://tiles.openfreemap.org/styles/bright',
+        center: [0, 20],
+        zoom: 2,
+        maxZoom: 10
+    });
 
-map.on('load', () => { 
-    applyTheme(); 
+    map.on('load', () => { 
+        applyTheme(); 
+    });
 });
 
 function toggleConfig() {
-    document.getElementById('config-panel').classList.toggle('hidden');
+    const wrapper = document.getElementById('panel-wrapper');
+    wrapper.classList.toggle('hidden');
+    // Arrow: ‹ when open (click to close), › when hidden (click to open)
+    document.getElementById('panelArrow').innerHTML = wrapper.classList.contains('hidden') ? '&#8250;' : '&#8249;';
 }
 
 // 2. THEME & CLEANUP
@@ -103,7 +133,6 @@ async function runEngine() {
         if (!line.trim()) continue;
         const parts = line.split(',').map(s => s.trim());
         
-        // Use the new column structure
         if (mode === 'polygon') {
             await handlePolygonNavigation(parts, speed);
         } else {
@@ -111,11 +140,7 @@ async function runEngine() {
         }
     }
 }
-// --- UPDATED POLYGON HANDLER ---
-// Format: Type (Country/State), Name, Color, Border, Fact, Details, Persist
 
-
-// UPDATE YOUR HANDLER TO USE THE NEW LOGS:
 async function handlePolygonNavigation(parts, speed) {
     const [type, name, color, border, fact, details, persist] = parts;
     const stayTime = parseInt(document.getElementById('stayDuration').value || 5) * 1000;
@@ -128,7 +153,6 @@ async function handlePolygonNavigation(parts, speed) {
         const officialName = feature.properties.name || feature.properties.NAME_1 || name;
         const layerId = `highlight-${name.replace(/\s+/g, '-')}-${Date.now()}`;
         
-        // Define marker outside the block so Cleanup can see it
         let currentMarker = null;
 
         if (feature.geometry.type === 'Point') {
@@ -148,7 +172,6 @@ async function handlePolygonNavigation(parts, speed) {
             showFactBox(fact, details, color);
             addHighlightLayer(layerId, officialName, color, border, sourceId);
             
-            // Assign to the variable defined in the wider scope
             const el = document.createElement('div');
             el.className = 'country-marker';
             el.innerText = name;
@@ -160,12 +183,11 @@ async function handlePolygonNavigation(parts, speed) {
 
         await new Promise(r => setTimeout(r, stayTime));
 
-        // CLEANUP SECTION
         if (persist && persist.toLowerCase() !== 'true') {
+            // FIX 6: Remove layers before removing the source to avoid dependent-layer errors
             if (map.getLayer(layerId)) map.removeLayer(layerId);
             if (map.getLayer(layerId + '-outline')) map.removeLayer(layerId + '-outline');
             
-            // Use the correctly scoped variable
             if (currentMarker) {
                 currentMarker.remove();
                 activeMarkers = activeMarkers.filter(m => m !== currentMarker);
@@ -183,12 +205,10 @@ async function handlePolygonNavigation(parts, speed) {
         addLog(`✘ Failed to find ${name}`, 'error');
     }
 }
-// --- UPDATED CITY HANDLER ---
-// Format: Origin Country, Name, Circle Color, Fact, Details, Persist
+
 async function handleCityNavigation(parts, speed) {
     const [origin, name, color, fact, details, persist] = parts;
     
-    // Search using both name and origin for high accuracy
     const searchQuery = `${name}, ${origin}`;
     const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1`;
     
@@ -204,7 +224,9 @@ async function handleCityNavigation(parts, speed) {
             const marker = createCityMarker(name, color, [parseFloat(lon), parseFloat(lat)]);
 
             await new Promise(r => setTimeout(r, 6000));
-            if (persist.toLowerCase() !== 'true') {
+
+            // FIX 5: Guard against undefined persist before calling .toLowerCase()
+            if (!persist || persist.toLowerCase() !== 'true') {
                 marker.remove();
                 hideFactBox();
             }
@@ -223,7 +245,6 @@ async function findFeature(lookupName, type) {
         
         let match = regionalData.features.find(f => {
             const p = f.properties;
-            // Log every name we encounter until we find a match
             const featName = (p.name || p.NAME_1 || p.state || p.province || "").toLowerCase();
             return featName === cleanName;
         });
@@ -246,7 +267,6 @@ async function findFeature(lookupName, type) {
         if (countryMatch) return { feature: countryMatch, source: 'engine-source' };
     }
 
-    // FINAL API ATTEMPT
     addLog(`Requesting Polygon from Nominatim API for: ${lookupName}`, "info");
     const apiRes = await fetch(`https://nominatim.openstreetmap.org/search?format=geojson&polygon_geojson=1&q=${encodeURIComponent(lookupName)}&limit=1`);
     const apiData = await apiRes.json();
@@ -267,14 +287,12 @@ function handleModeChange() {
     const mode = document.getElementById('navMode').value;
     const regionalSection = document.getElementById('regional-section');
     
-    // Hide or Show Regional Packs based on Mode
     if (mode === 'city') {
         regionalSection.classList.add('display-none');
     } else {
         regionalSection.classList.remove('display-none');
     }
     
-    // Also run your existing placeholder update
     updateCSVPlaceholder();
 }
 
@@ -288,7 +306,7 @@ function addCountryTag() {
         renderTags();
         addLog(`Added to queue: ${text}`, 'info');
     }
-    select.value = ""; // Reset dropdown for next selection
+    select.value = "";
 }
 
 function removeCountryTag(val) {
@@ -299,10 +317,9 @@ function removeCountryTag(val) {
 
 function renderTags() {
     const container = document.getElementById('tag-container');
-    container.innerHTML = ''; // Clear existing
+    container.innerHTML = '';
     
     selectedRegions.forEach(val => {
-        // Try to find the pretty name from the dropdown options
         const option = document.querySelector(`#countrySelect option[value="${val}"]`);
         const displayName = option ? option.text : val.toUpperCase();
         
@@ -315,35 +332,58 @@ function renderTags() {
         container.appendChild(tag);
     });
 }
-async function loadRegionalPacks() {
-    if (selectedRegions.size === 0) return;
-    regionalData.features = []; 
-    
-    for (const country of selectedRegions) {
-        const url = `https://raw.githubusercontent.com/mledoze/countries/master/data/${country.toLowerCase()}.geo.json`;
-        try {
-            const res = await fetch(url);
-            const data = await res.json();
-            
-            // THE FIX: Some mledoze files have the features inside data.features
-            // Others ARE the features themselves.
-            let featuresToStore = [];
-            
-            if (data.features && Array.isArray(data.features)) {
-                featuresToStore = data.features;
-            } else if (data.type === "Feature") {
-                featuresToStore = [data];
-            } else if (Array.isArray(data)) {
-                featuresToStore = data;
-            }
 
-            regionalData.features.push(...featuresToStore);
-            addLog(`✔ Success: ${country} processed. Added ${featuresToStore.length} sub-regions to local index.`, "success");
+async function loadRegionalPacks() {
+    // Always reset so stale data from a previous run doesn't persist
+    regionalData.features = [];
+
+    if (selectedRegions.size === 0) return;
+
+    // Validate all selected packs have known ISO3 codes before fetching
+    const unknownPacks = [...selectedRegions].filter(k => !PACK_ISO3[k.toLowerCase()]);
+    if (unknownPacks.length > 0) {
+        unknownPacks.forEach(k => addLog(`⚠ Unknown pack key "${k}" — add it to PACK_ISO3 in script.js`, "error"));
+    }
+
+    const validPacks = [...selectedRegions].filter(k => PACK_ISO3[k.toLowerCase()]);
+    if (validPacks.length === 0) return;
+
+    // Fetch the Natural Earth Admin-1 file once and cache it for the session
+    if (!_naturalEarthAdmin1Cache) {
+        addLog(`Downloading Natural Earth Admin-1 data (one-time, ~14MB)...`, "info");
+        try {
+            const res = await fetch(NATURAL_EARTH_ADMIN1_URL);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            _naturalEarthAdmin1Cache = await res.json();
+            addLog(`✔ Natural Earth Admin-1 downloaded. ${_naturalEarthAdmin1Cache.features.length} total regions cached.`, "success");
         } catch (e) {
-            addLog(`✘ Error loading ${country}`, "error");
+            addLog(`✘ Failed to download Natural Earth Admin-1: ${e.message}`, "error");
+            return;
         }
+    } else {
+        addLog(`Using cached Natural Earth Admin-1 data.`, "info");
+    }
+
+    // Filter the cached data for each selected pack
+    for (const country of validPacks) {
+        const key = country.toLowerCase();
+        const iso3 = PACK_ISO3[key];
+
+        const features = _naturalEarthAdmin1Cache.features.filter(f =>
+            f.properties && f.properties.adm0_a3 === iso3
+        );
+
+        if (features.length === 0) {
+            addLog(`⚠ No features found for ISO3 "${iso3}" (pack: ${key}). Check PACK_ISO3 mapping.`, "error");
+            continue;
+        }
+
+        // Natural Earth already uses 'name' consistently — no normalisation needed
+        regionalData.features.push(...features);
+        addLog(`✔ ${key.toUpperCase()} pack loaded: ${features.length} regions (ISO3: ${iso3})`, "success");
     }
 }
+
 // 6. HELPERS
 function showFactBox(fact, details, color) {
     const box = document.getElementById('fact-box');
@@ -365,13 +405,11 @@ function createCityMarker(name, dotColor, coords) {
 }
 
 function addHighlightLayer(id, officialName, color, width, sourceId) {
-    // Logic: If it's the global country file, filter by name.
-    // If it's a specific state source created via findFeature, we show everything in that source.
     const filter = (sourceId === 'engine-source') 
         ? ['==', ['get', 'name'], officialName] 
-        : ["all"]; 
+        // FIX 8: Use ['boolean', true] instead of ["all"] with no sub-expressions
+        : ['boolean', true];
 
-    // Add Fill Layer
     map.addLayer({
         id: id,
         type: 'fill',
@@ -383,7 +421,6 @@ function addHighlightLayer(id, officialName, color, width, sourceId) {
         filter: filter
     });
 
-    // Add Outline Layer
     map.addLayer({
         id: id + '-outline',
         type: 'line',
@@ -396,10 +433,22 @@ function addHighlightLayer(id, officialName, color, width, sourceId) {
     });
 }
 
+// FIX 4: Handle MultiPolygon geometry in getBounds by flattening coords to the correct depth
 function getBounds(feature) {
     const bounds = new maplibregl.LngLatBounds();
-    const coords = feature.geometry.type === 'Polygon' ? feature.geometry.coordinates[0] : feature.geometry.coordinates.flat(2);
-    coords.forEach(c => { if(Array.isArray(c) && typeof c[0] === 'number') bounds.extend(c); });
+    const geom = feature.geometry;
+
+    let coords;
+    if (geom.type === 'Polygon') {
+        coords = geom.coordinates[0];
+    } else if (geom.type === 'MultiPolygon') {
+        // MultiPolygon: [ [ [ [lng,lat], ... ] ] ] — need flat(2) from the top level
+        coords = geom.coordinates.flat(2);
+    } else {
+        coords = geom.coordinates.flat(Infinity);
+    }
+
+    coords.forEach(c => { if (Array.isArray(c) && typeof c[0] === 'number') bounds.extend(c); });
     return bounds;
 }
 
@@ -407,12 +456,11 @@ function clearPreviousTour() {
     activeMarkers.forEach(m => m.remove());
     activeMarkers = [];
     
-    // Clear existing highlight layers
+    // FIX 6: Remove highlight layers before removing their sources
     map.getStyle().layers.forEach(l => { 
         if (l.id.startsWith('highlight-')) map.removeLayer(l.id); 
     });
 
-    // Clear temporary sources to prevent "Source already exists" errors
     const style = map.getStyle();
     Object.keys(style.sources).forEach(s => {
         if (s.startsWith('state-src') || s.startsWith('api-src')) {
@@ -426,17 +474,24 @@ function clearPreviousTour() {
 
 function copyLogs() {
     const logContent = document.getElementById('log-content');
-    // Get text and clean up multiple newlines
     const text = logContent.innerText.replace(/\n\s*\n/g, '\n');
-    
     navigator.clipboard.writeText(text).then(() => {
-        const btn = document.querySelector('.btn-copy-log');
-        const originalText = btn.innerText;
-        btn.innerText = "COPIED!";
-        setTimeout(() => btn.innerText = originalText, 2000);
-    }).catch(err => {
-        console.error('Failed to copy: ', err);
-    });
+        const btn = document.querySelector('.btn-log-action[onclick="copyLogs()"]');
+        const orig = btn.innerText;
+        btn.innerText = "Copied!";
+        setTimeout(() => btn.innerText = orig, 2000);
+    }).catch(err => console.error('Failed to copy:', err));
+}
+
+function clearLogs() {
+    document.getElementById('log-content').innerHTML = '';
+}
+
+function toggleLogMinimise() {
+    const overlay = document.getElementById('map-log');
+    const btn = document.querySelector('.btn-log-minimise');
+    const isMin = overlay.classList.toggle('log-minimised');
+    btn.textContent = isMin ? '+' : '−';
 }
 
 function addLog(message, type = 'info') {
@@ -447,9 +502,10 @@ function addLog(message, type = 'info') {
     const timestamp = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
     entry.innerHTML = `<span style="color: #666;">[${timestamp}]</span> ${message}`;
     
-    logContent.appendChild(entry); // Append to end
-    logContent.scrollTop = logContent.scrollHeight; // Auto-scroll to latest
+    logContent.appendChild(entry);
+    logContent.scrollTop = logContent.scrollHeight;
 }
+
 function updateCSVPlaceholder() {
     const mode = document.getElementById('navMode').value;
     const input = document.getElementById('locationInput');

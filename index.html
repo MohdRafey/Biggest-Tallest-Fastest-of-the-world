@@ -7,23 +7,28 @@
     <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
     <link rel="stylesheet" href="style.css">
 </head>
+<body>
+
+<!-- Log overlay — minimise/clear buttons added, no longer blocks the START TOUR button -->
 <div id="map-log" class="log-overlay">
     <div class="log-header">
         <span>Engine Logs</span>
-        <button class="btn-copy-log" onclick="copyLogs()">Copy All</button>
+        <div class="log-header-btns">
+            <button class="btn-log-action" onclick="clearLogs()">Clear</button>
+            <button class="btn-log-action" onclick="copyLogs()">Copy</button>
+            <button class="btn-log-action btn-log-minimise" onclick="toggleLogMinimise()">−</button>
+        </div>
     </div>
     <div id="log-content"></div>
 </div>
-<body>
 
 <div id="fact-box">
     <p id="fact-body">Main Fact</p>
     <div id="fact-details">Details go here...</div>
 </div>
 
-<button class="btn-toggle" onclick="toggleConfig()">⚙️</button>
-
-<div id="config-panel">
+<div id="panel-wrapper">
+  <div id="config-panel">
     <h3 style="margin:0 0 15px 0">Map Engine Configuration</h3>
 
     <div class="field">
@@ -34,21 +39,27 @@
         </select>
     </div>
 
-<div id="regional-section" class="field">
-    <label>Regional Data Packs</label>
-    <div class="select-wrapper">
-        <select id="countrySelect" onchange="addCountryTag()">
-            <option value="" disabled selected>Add Country Pack...</option>
-            <option value="usa">USA</option>
-            <option value="ind">India</option>
-            <option value="chn">China</option>
-            <option value="bra">Brazil</option>
-            <option value="aus">Australia</option>
-            <option value="can">Canada</option>
-        </select>
+    <div id="regional-section" class="field">
+        <label>State / Province Data Packs</label>
+        <p class="hint-text" style="margin-bottom:6px">Load before using "State" type in CSV. Data fetched once &amp; cached.</p>
+        <div class="select-wrapper">
+            <select id="countrySelect" onchange="addCountryTag()">
+                <option value="" disabled selected>Add Country Pack...</option>
+                <option value="usa">USA</option>
+                <option value="ind">India</option>
+                <option value="jpn">Japan</option>
+                <option value="aus">Australia</option>
+                <option value="can">Canada</option>
+                <option value="deu">Germany</option>
+                <option value="gbr">United Kingdom</option>
+                <option value="fra">France</option>
+                <option value="esp">Spain</option>
+                <option value="rus">Russia</option>
+                <option value="chn">China</option>
+            </select>
+        </div>
+        <div id="tag-container" class="tag-container"></div>
     </div>
-    <div id="tag-container" class="tag-container"></div>
-</div>
 
     <div class="field">
         <label id="csvLabel">Location List</label>
@@ -87,18 +98,29 @@ State, Georgia, #3498db, 2, US State, Known as the Peach State, false</textarea>
         </div>
     </div>
 
+    <!-- Slider row: label on left, value+unit on right, slider full width below -->
     <div class="field">
-    <label>Stay Duration (seconds)</label>
-    <input type="range" id="stayDuration" min="1" max="20" value="6" oninput="this.nextElementSibling.value = this.value">
-    <output>6</output>s
-</div>
+        <div class="slider-label-row">
+            <label style="margin:0">Stay Duration</label>
+            <span class="slider-value-display"><output id="stayOutput">6</output>s</span>
+        </div>
+        <input type="range" id="stayDuration" min="1" max="20" value="6"
+               oninput="document.getElementById('stayOutput').value = this.value">
+    </div>
 
-<div class="field">
-    <label><input type="checkbox" id="showLogs" checked onchange="document.getElementById('map-log').classList.toggle('hidden')"> Show Live Engine Logs</label>
-</div>
+    <!-- Show logs row: checkbox + label neatly aligned -->
+    <div class="field">
+        <div class="toggle-row">
+            <input type="checkbox" id="showLogs" checked
+                   onchange="document.getElementById('map-log').classList.toggle('log-hidden')">
+            <label for="showLogs" style="margin:0; cursor:pointer;">Show Live Engine Logs</label>
+        </div>
+    </div>
 
     <button class="btn-run" onclick="runEngine()">▶ START TOUR</button>
-</div>
+  </div><!-- /config-panel -->
+  <button class="panel-arrow" id="panelArrow" onclick="toggleConfig()" title="Hide / Show panel">&#8249;</button>
+</div><!-- /panel-wrapper -->
 
 <div id="map"></div>
 

@@ -1,7 +1,7 @@
 body { margin: 0; padding: 0; background: #000; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
 #map { position: absolute; top: 0; bottom: 0; width: 100%; }
 
-/* FACT BOX */
+/* ─── FACT BOX ─────────────────────────────────────────────────────────────── */
 #fact-box {
     position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
     z-index: 1000; background: rgba(255, 255, 255, 0.98);
@@ -11,41 +11,14 @@ body { margin: 0; padding: 0; background: #000; font-family: 'Segoe UI', sans-se
     transition: all 0.3s ease;
 }
 #fact-body { margin: 0; font-size: 20px; color: #1a1a1a; font-weight: 800; line-height: 1.2; }
-#fact-details { 
-    margin-top: 8px; font-size: 13px; color: #555; font-weight: 400; 
-    line-height: 1.5; border-top: 1px solid #eee; padding-top: 8px; 
+#fact-details {
+    margin-top: 8px; font-size: 13px; color: #555; font-weight: 400;
+    line-height: 1.5; border-top: 1px solid #eee; padding-top: 8px;
 }
 
-/* LABELS */
+/* ─── MAP LABELS ────────────────────────────────────────────────────────────── */
 .country-marker {
-    color: white; text-shadow: 0 0 10px rgba(0,0,0,0.8);
-    font-size: 22px; font-weight: bold; text-transform: uppercase;
-    letter-spacing: 2px; pointer-events: none; white-space: nowrap;
-}
-
-/* CONFIG PANEL */
-#config-panel {
-    position: absolute; top: 10px; left: 10px; z-index: 100;
-    background: rgba(255, 255, 255, 0.95); width: 320px;
-    padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-    max-height: 90vh; overflow-y: auto; transition: 0.3s ease;
-}
-.hidden { transform: translateX(-350px); }
-
-.field { margin-bottom: 15px; }
-label { display: block; font-size: 11px; font-weight: bold; color: #666; margin-bottom: 5px; text-transform: uppercase; }
-textarea { width: 100%; height: 100px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 11px; box-sizing: border-box; }
-input, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-.hint-text { font-size: 9px; color: #999; margin-top: -5px; }
-
-/* BUTTONS */
-.btn-run { width: 100%; background: #27ae60; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-.btn-toggle { position: absolute; top: 10px; left: 340px; background: white; border: none; padding: 10px; border-radius: 50%; cursor: pointer; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-.btn-refresh { background: #9b59b6; color: white; border: none; padding: 0 15px; border-radius: 4px; cursor: pointer; }
-
-/* CITY MARKERS */
-.country-marker {
-    color: white; 
+    color: white;
     text-shadow: 0 0 10px rgba(0,0,0,0.8);
     font-size: 22px;
     font-weight: bold;
@@ -54,102 +27,275 @@ input, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px s
     pointer-events: none;
     white-space: nowrap;
 }
+
+.city-marker-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+}
 .city-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 8px rgba(0,0,0,0.5); }
-
 .city-label { font-size: 14px; font-weight: 800; margin-bottom: 4px; text-shadow: 0 0 4px rgba(0,0,0,0.5); white-space: nowrap; }
-
-/* THEME ADAPTATION */
 .theme-dark .city-label { color: #ffffff; }
 .theme-light .city-label { color: #000000; }
 
-/* Multi-select Tags */
-.tag-container {
+/* ─── CONFIG PANEL ──────────────────────────────────────────────────────────── */
+/* --- CONFIG PANEL --- */
+/* panel-wrapper handles position + slide; never has overflow:auto */
+/* so the arrow tab cannot trigger a horizontal scrollbar.          */
+#panel-wrapper {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 100;
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 10px;
-    min-height: 20px;
+    flex-direction: row;
+    align-items: flex-start;
+    transition: transform 0.3s ease;
+}
+#panel-wrapper.hidden { transform: translateX(-330px); }
+
+#config-panel {
+    width: 320px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    max-height: 90vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+/* .hidden slides the config panel out; does NOT affect the log overlay */
+
+/* ─── FORM ELEMENTS ─────────────────────────────────────────────────────────── */
+.field { margin-bottom: 14px; }
+
+/* Default label style for standalone labels */
+label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #666;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
 }
 
-.country-tag {
-    background: #3498db;
-    color: white;
-    padding: 4px 10px;
-    border-radius: 15px;
+textarea {
+    width: 100%; height: 100px;
+    border: 1px solid #ccc; border-radius: 4px;
+    font-family: monospace; font-size: 11px;
+    box-sizing: border-box; resize: vertical;
+}
+
+input[type="number"],
+input[type="text"],
+select {
+    width: 100%; padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid #ccc; border-radius: 4px;
     font-size: 12px;
+}
+
+.hint-text { font-size: 9px; color: #999; margin: 2px 0 0; }
+.select-wrapper { margin-bottom: 5px; }
+
+/* ─── SLIDER ROW ────────────────────────────────────────────────────────────── */
+/* Label + live value on the same line, slider below spanning full width */
+.slider-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+.slider-value-display {
+    font-size: 12px;
+    font-weight: 700;
+    color: #333;
+    white-space: nowrap;
+}
+.slider-value-display output {
+    font-variant-numeric: tabular-nums;
+}
+input[type="range"] {
+    width: 100%;
+    padding: 0;
+    border: none;
+    accent-color: #27ae60;
+    cursor: pointer;
+}
+
+/* ─── CHECKBOX / TOGGLE ROW ─────────────────────────────────────────────────── */
+/* Checkbox and its label sit side-by-side, vertically centred */
+.toggle-row {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+.toggle-row input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    accent-color: #27ae60;
+}
+.toggle-row label {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    line-height: 1;
+}
+
+/* ─── BUTTONS ───────────────────────────────────────────────────────────────── */
+.btn-run {
+    width: 100%; background: #27ae60; color: white;
+    border: none; padding: 12px; border-radius: 6px;
+    cursor: pointer; font-weight: 700; font-size: 13px;
+    margin-top: 4px; letter-spacing: 0.5px;
+    transition: background 0.2s;
+}
+.btn-run:hover { background: #219a52; }
+
+/* --- PANEL ARROW TAB --- */
+.panel-arrow {
+    position: absolute;
+    top: 50%;
+    right: -28px;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 52px;
+    background: rgba(255,255,255,0.95);
+    border: 1px solid #ddd;
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 3px 0 8px rgba(0,0,0,0.15);
+    cursor: pointer;
+    z-index: 101;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: #555;
+    line-height: 1;
+    padding: 0;
+    transition: background 0.2s, color 0.2s;
+}
+.panel-arrow:hover { background: #fff; color: #222; }
+/* Nothing to override — shape stays identical open or closed.
+   Only the glyph changes (handled in JS). */
+
+.btn-refresh {
+    background: #9b59b6; color: white;
+    border: none; padding: 0 15px;
+    border-radius: 4px; cursor: pointer;
+}
+
+/* ─── COUNTRY TAGS ──────────────────────────────────────────────────────────── */
+.tag-container {
+    display: flex; flex-wrap: wrap;
+    gap: 6px; margin-top: 8px; min-height: 20px;
+}
+.country-tag {
+    background: #3498db; color: white;
+    padding: 4px 10px; border-radius: 15px;
+    font-size: 11px; display: flex;
+    align-items: center; gap: 6px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-
 .remove-btn {
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 16px;
-    line-height: 1;
+    cursor: pointer; font-weight: bold;
+    font-size: 15px; line-height: 1;
     color: rgba(255,255,255,0.7);
 }
+.remove-btn:hover { color: white; }
 
-.remove-btn:hover {
-    color: white;
-}
-/* Hide logic */
-.display-none {
-    display: none !important;
-}
+/* ─── UTILITY ───────────────────────────────────────────────────────────────── */
+.display-none { display: none !important; }
+.log-hidden { display: none !important; }
 
-.select-wrapper { margin-bottom: 5px; }
-
+/* ─── LOG OVERLAY ───────────────────────────────────────────────────────────── */
 .log-overlay {
     position: absolute;
-    bottom: 30px;
-    left: 20px;
-    width: 350px; /* Widened slightly for easier reading */
-    max-height: 250px;
-    background: rgba(0, 0, 0, 0.85);
+    bottom: 20px;
+    left: 10px;
+    width: 360px;
+    /* Max-height collapses to just the header when minimised */
+    max-height: 110px;
+    background: rgba(10, 10, 10, 0.92);
     color: #00ff00;
-    padding: 0;
     border-radius: 8px;
     font-family: 'Courier New', monospace;
     font-size: 11px;
     z-index: 2000;
-    border: 1px solid #444;
+    border: 1px solid #333;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    /* REMOVE pointer-events: none; so we can click buttons */
+    transition: max-height 0.25s ease;
+    backdrop-filter: blur(4px);
+}
+
+/* Minimised state — collapses to header only */
+.log-overlay.log-minimised {
+    max-height: 36px;
 }
 
 .log-header {
-    background: #222;
-    padding: 8px 12px;
-    font-weight: bold;
-    border-bottom: 1px solid #444;
-    color: #aaa;
+    flex-shrink: 0;          /* never squish the header */
+    background: #1a1a1a;
+    padding: 6px 10px;
+    font-weight: 700;
+    border-bottom: 1px solid #333;
+    color: #888;
+    font-size: 11px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
-
-#log-content {
-    padding: 10px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column; /* Changed from column-reverse to standard for easier copying */
-    user-select: text; /* Ensures you can highlight the text */
-}
-
-/* Add a style for the copy button */
-.btn-copy-log {
-    background: #444;
-    color: #fff;
-    border: none;
-    padding: 2px 8px;
-    border-radius: 3px;
-    font-size: 9px;
-    cursor: pointer;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
 }
 
-.btn-copy-log:hover { background: #666; }
+.log-header-btns {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.btn-log-action {
+    background: #2a2a2a;
+    color: #aaa;
+    border: 1px solid #444;
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-size: 9px;
+    font-family: 'Segoe UI', sans-serif;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    transition: background 0.15s, color 0.15s;
+}
+.btn-log-action:hover { background: #3a3a3a; color: #fff; }
+
+/* The − / + minimise button is slightly wider */
+.btn-log-minimise { min-width: 22px; text-align: center; font-size: 13px; padding: 1px 6px; }
+
+#log-content {
+    flex: 1;
+    padding: 8px 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    user-select: text;
+}
+
+.log-entry { line-height: 1.5; }
+.log-entry.success { color: #2ecc71; }
+.log-entry.error   { color: #e74c3c; }
+.log-entry.info    { color: #00cc88; }
