@@ -41,14 +41,6 @@
     <!-- ════════════════════════════════════════════════════ TOUR TAB -->
     <div id="tab-tour" class="tab-content">
 
-        <div class="field">
-            <label>Navigation Mode</label>
-            <select id="navMode" onchange="handleModeChange()">
-                <option value="polygon">Country / State / Province</option>
-                <option value="city">City / Landmark</option>
-            </select>
-        </div>
-
         <div id="regional-section" class="field">
             <label>State / Province Data Packs</label>
             <p class="hint-text" style="margin-bottom:6px">Load before using State rows. Fetched once &amp; cached.</p>
@@ -76,12 +68,12 @@
                 <label id="csvLabel" style="margin:0">Location List</label>
                 <button class="btn-shuffle" onclick="shuffleCSV()" title="Load a random sample dataset">&#9684; Shuffle</button>
             </div>
-            <p id="csvHint" class="hint-text">Format: Type, Name, Color, Fact, Details, BorderWidth, Label, ShowFact, Persist, PersistLabel, RecencyMode</p>
-            <textarea id="locationInput">Country, India, #e67e22, The Subcontinent, World's most populous country, 2, false, true, false, false, false
-State, Maharashtra, #e74c3c, Maharashtra, Home to Mumbai — India's financial hub, 1.5, true, true, true, false, true
-State, Karnataka, #e74c3c, Karnataka, Silicon Valley of India, 1.5, true, true, true, false, true
-State, Tamil Nadu, #e74c3c, Tamil Nadu, Land of Temples and Culture, 1.5, true, true, true, false, true
-State, Kerala, #e74c3c, Kerala, God's Own Country, 1.5, true, true, true, false, true</textarea>
+            <p id="csvHint" class="hint-text">Format: Type, Name, Origin, Color, Fact, Details, Size, Label, ShowFact, Persist, PersistLabel, RecencyMode &nbsp;|&nbsp; Origin: empty for polygons, country/region for cities</p>
+            <textarea id="locationInput">Country, India, , #e67e22, The Subcontinent, World's most populous country, 2, false, true, false, false, false
+State, Maharashtra, , #e74c3c, Maharashtra, Home to Mumbai — India's financial hub, 1.5, true, true, true, false, true
+State, Karnataka, , #e74c3c, Karnataka, Silicon Valley of India, 1.5, true, true, true, false, true
+City, Mumbai, India, #e74c3c, Mumbai, Financial capital of India, 10, true, true, false, false, false
+City, Bengaluru, India, #3498db, Bengaluru, Silicon Valley of India, 8, true, true, false, false, false</textarea>
         </div>
 
         <div class="row" style="display:flex; gap:10px;">
@@ -95,9 +87,8 @@ State, Kerala, #e74c3c, Kerala, God's Own Country, 1.5, true, true, true, false,
             </div>
         </div>
 
-        <div class="row" style="display:flex; gap:10px;">
         <div class="field">
-            <label>Speed (0.1 – 2.0)</label>
+            <label>Travel Speed (0.1 – 2.0)</label>
             <input type="number" id="speed" value="0.4" step="0.1" min="0.1" max="2">
         </div>
 
@@ -127,7 +118,6 @@ State, Kerala, #e74c3c, Kerala, God's Own Country, 1.5, true, true, true, false,
                 </select>
                 <button class="btn-refresh" onclick="applyTheme()">🔄</button>
             </div>
-        </div>
         </div>
 
         <div class="field">

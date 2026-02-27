@@ -56,7 +56,7 @@ body { margin: 0; padding: 0; background: #000; font-family: 'Segoe UI', sans-se
 #panel-wrapper.hidden { transform: translateX(-330px); }
 
 #config-panel {
-    width: 320px;
+    width: 330px;
     padding: 20px;
     background: rgba(255, 255, 255, 0.95);
     border-radius: 12px;
