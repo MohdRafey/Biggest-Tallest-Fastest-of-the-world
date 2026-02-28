@@ -1,0 +1,51 @@
+﻿ Type, Name,Origin,Color,Fact,Details,Size,Label,ShowFact,Persist,PersistLabel,RecencyMode
+Country,USA,,#3C3B6E,Taylor Swift,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,India,,#FF9933,Shah Rukh Khan,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,United Kingdom,,#012169,Adele,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Canada,,#D80621,The Weeknd,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,South Korea,,#C60C30,BTS,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Japan,,#BC002D,Yoshiki,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,China,,#DE2910,Jackie Chan,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,France,,#0055A4,Omar Sy,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Brazil,,#009C3B,Anitta,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Mexico,,#006847,Salma Hayek,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Australia,,#00008B,Hugh Jackman,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Germany,,#000000,Diane Kruger,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Spain,,#AA151B,Penélope Cruz,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Italy,,#008C45,Andrea Bocelli,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Turkey,,#E30A17,Tarkan,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Pakistan,,#01411C,Atif Aslam,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Nigeria,,#008753,Burna Boy,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,South Africa,,#007A4D,Trevor Noah,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Russia,,#0039A6,Alla Pugacheva,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Argentina,,#74ACDF,Ricardo Darín,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Indonesia,,#CE1126,Agnez Mo,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Philippines,,#0038A8,Lea Salonga,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Thailand,,#A51931,Lisa,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Malaysia,,#010066,Michelle Yeoh,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Egypt,,#CE1126,Amr Diab,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Saudi Arabia,,#006C35,Mohammed Abdo,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,UAE,,#FF0000,Hussain Al Jassmi,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Israel,,#0038B8,Gal Gadot,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Sweden,,#005293,ABBA,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Norway,,#BA0C2F,Kygo,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Denmark,,#C60C30,Mads Mikkelsen,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Finland,,#003580,Lordi,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Netherlands,,#21468B,Martin Garrix,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Belgium,,#000000,Stromae,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Switzerland,,#FF0000,DJ BoBo,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Poland,,#DC143C,Joanna Krupa,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Ukraine,,#0057B7,Mila Kunis,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Greece,,#0D5EAF,Sakis Rouvas,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Portugal,,#006600,AmÃ¡lia Rodrigues,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Colombia,,#FCD116,Shakira,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Chile,,#0039A6,Pedro Pascal,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Peru,,#D91023,Stephanie Cayo,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Vietnam,,#DA251D,Sơn Tùng M-TP,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Bangladesh,,#006A4E,Tahsan Khan,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Nepal,,#003893,Manisha Koirala,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Sri Lanka,,#8D153A,Jacqueline Fernandez,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Iran,,#239F40,Googoosh,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Iraq,,#CE1126,Kadhim Al Sahir,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Kenya,,#006600,Lupita Nyong'o,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
+Country,Morocco,,#C1272D,Saad Lamjarred,T,2,TRUE,TRUE,TRUE,FALSE,FALSE
